@@ -1,0 +1,47 @@
+ RSA Encryption/Decryption
+ 
+ main
+-Χειρίζεται την είσοδο του χρήστη και χρησιμοποιεί μία μεταβλήτη flag( 8 bits) για να εντωπύση της λειτουργία που θέλει ο χρήστης.
+
+void generatePrime(mpz_t prime, int length)
+-Μια συνάρτηση που με τη χρήση συναρτλησεων της βιβλιοθήκης gmp δημιουργεί πρώτους αριθμούς για την δημιουργία κλειδιών.
+
+int generateRSAKeyPair(int length,mpz_t file_n,mpz_t priv_num, mpz_t public_num){
+-έχει σαν όρισμα το μήκος του κλειδιου που απαιτεί ο χρήστης όπως και τα κλειδία που θα παράξει.
+--Δημιουργεί δύο πρώτους αριθμούς με την χρήση της generatePrime.Στη συνέχεια με αυτους τους δύο αριθμους δημιουργεί το n καθώς και το publicKey e με την lambda(n) (Euler’s totient function) και το privateKey d με την χρήση της mpz_invert(d,e,lambda)
+
+int generateRSAKeyPairToFile(int length){
+-Καλει την generateRSAKeyPair και γράγει τα κλειδία στα αρχεία public_length.key και private_length.key αντίστοιχα.
+
+void encrypt(mpz_t cipher_text, mpz_t message, mpz_t e, mpz_t n) 
+-Παίρνει σαν όρισμα τα κλειδάι n και e καθώς και το μήνυμα που θέλει να κρυπτογραφήσει και επιστρεφει τη το κρυπτογραφιμενο μήνυμα.
+
+void decrypt(mpz_t message, mpz_t cipher_text, mpz_t d, mpz_t n) 
+-Παίρνει σαν όρισμα τα κλειδάι n και d καθώς και το κρυπτογραφιμενο μήνυμα που θέλει να κρυπτογραφήσει και επιστρεφει τo αρχικό μήνυμα.
+
+
+int file_encrypt(char *inFile, char *outFile, char *keyFile) {
+- Διαβάζει απο το αρχείο εισόδου το μήνυμα που πρέπει να κρυπτογραφηθεί.
+- Διαβάζει το publicKey e από το αρχείο με το κλειδί.
+- Καλεί την encrypt και γράφει το κρυπτογραφημένο μήνυμα στο αρχέιο εξόδου.
+
+int file_decrypt(char *inFile, char *outFile, char *keyFile) {
+- Διαβάζει απο το αρχείο εισόδου το μήνυμα που πρέπει να αποκρυπτογραφηθεί(το αρχέιο που έγραψε η file_encrypt).
+- Διαβάζει το privateKey d από το αρχείο με το κλειδί.
+- Καλεί την decrypt και γράφει το αποκρυπτογραφημένο μήνυμα στο αρχέιο εξόδο.
+
+void performance(char *outFile) {
+- Η συνάρτηση τεστάρει τον χρόνο και τη μνήμη που χρειάζεται ο αλγόριθμος για διαφορετικά μεγέθη κλειδιου.
+- Χρησιμοποιει τις βιβλιοθήκες <sys/time.h>(για τον χρόνο) και <sys/resource.h>(για την μνήμη)
+- Δημιουργέι αρχέια που αποθηκέυει τα public και private κλειδιά
+- Χρησιμοπιεί τις συναρτήσεις encrypt και decrypt και την συνάτηση clock() για να μετρήσει τον χρόνο.
+-- καλει την getMemoryUsage ια να βρει το peakMemroy usage το encryption και στο decryption
+
+long getMemoryUsage() 
+- Χρησιμοποιεί απο την resource.h το structe rusage και την συναρτηση getrusage() για να βρει το στιγμιαιο peak memeory (0 για καποιον λογο)
+- Επιστρεφει το memory usage σε kilobytes
+
+
+	
+
+
