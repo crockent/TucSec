@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "evp.h": "c"
-    }
+        "evp.h": "c",
+        "logger.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
