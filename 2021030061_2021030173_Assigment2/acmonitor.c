@@ -15,8 +15,8 @@ typedef struct log_entry {
 	int access_type; /* access type values [0-2] */
 	int action_denied; /* is action denied values [0-1] */
 
-	time_t date; /* file access date */
-	time_t time; /* file access time */
+	char* date; /* file access date */
+	char* time; /* file access time */
 
 	char *file; /* filename (string) */
 	char *fingerprint; /* file fingerprint */
@@ -43,6 +43,8 @@ void get_user_log_entry(LOG* log_entry, FILE* logfile) {
     // Allocate enough space for strings
     log_entry->file = malloc(sizeof(char) * 256);  // Increased size
     log_entry->fingerprint = malloc(sizeof(char) * 256);  // Increased size
+    log_entry->time = malloc(sizeof(char)*20);
+    log_entry->date = malloc(sizeof(char)*20);
     if (!log_entry->file || !log_entry->fingerprint) {
         printf("Memory allocation failed\n");
         exit(EXIT_FAILURE);
@@ -53,15 +55,15 @@ void get_user_log_entry(LOG* log_entry, FILE* logfile) {
 
     if (fscanf(logfile, "%d %s %s %s %d %d %s",
            &(log_entry->uid), log_entry->file, 
-           date_buffer,  // use buffer for date
+           log_entry->date,
+           log_entry->time, // use buffer for date
            &(log_entry->access_type), &(log_entry->action_denied), 
            log_entry->fingerprint) != 10) { // Ensure we read all expected values
         printf("Log entry format is invalid\n");
         exit(EXIT_FAILURE);
     }
 
-    // Optionally: parse date_buffer if needed, currently set to time(NULL)
-    log_entry->date = time(NULL); // Adjust this line if you need actual date parsing
+   
 }
 
 int check(int *users,int user){
