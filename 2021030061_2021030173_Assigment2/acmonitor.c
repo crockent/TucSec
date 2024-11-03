@@ -3,115 +3,132 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
+
+#define MAX_USERS 1000
+#define MAX_FILES 100
+#define MAX_FILENAME_LENGTH 256
 
 struct log_entry {
-
-	int uid; /* user id (positive integer) */
-	int access_type; /* access type values [0-2] */
-	int action_denied; /* is action denied values [0-1] */
-
-	time_t date; /* file access date */
-	time_t time; /* file access time */
-
-	char *file; /* filename (string) */
-	char *fingerprint; /* file fingerprint */
-
-	/* add here other fields if necessary */
-	/* ... */
-	/* ... */
-
+    int uid;
+    int access_type;
+    int action_denied;
+    char date[15];
+    char timestamp[9];
+    char file[MAX_FILENAME_LENGTH];
+    char fingerprint[65];
 };
 
-
-void
-usage(void)
-{
-	printf(
-	       "\n"
-	       "usage:\n"
-	       "\t./monitor \n"
-		   "Options:\n"
-		   "-m, Prints malicious users\n"
-		   "-i <filename>, Prints table of users that modified "
-		   "the file <filename> and the number of modifications\n"
-		   "-h, Help message\n\n"
-		   );
-
-	exit(1);
+// Prints usage information
+void usage(void) {
+    printf(
+        "\n"
+        "usage:\n"
+        "\t./acmonitor\n"
+        "Options:\n"
+        "-m, Prints malicious users\n"
+        "-i <filename>, Prints table of users that modified "
+        "the file <filename> and the number of modifications\n"
+        "-h, Help message\n\n"
+    );
+    exit(1);
 }
 
+// List unauthorized accesses for users accessing more than 5 unique files
+void list_unauthorized_accesses(FILE *log) {
+    struct log_entry entry;
+    int unauthorized_access_counts[MAX_USERS] = {0}; 
+    char accessed_files[MAX_USERS][MAX_FILES][MAX_FILENAME_LENGTH] = {{{0}}};
+    int unique_file_count[MAX_USERS] = {0};
 
-void 
-list_unauthorized_accesses(FILE *log)
-{
+    while (fscanf(log, "%d %s %s %s %d %d %s", 
+                  &entry.uid, entry.file, entry.date, entry.timestamp, 
+                  &entry.access_type, &entry.action_denied, entry.fingerprint) == 7) {
+        
+        if (entry.uid < 0 || entry.uid >= MAX_USERS) {
+            fprintf(stderr, "Warning: User ID %d out of bounds, skipping entry.\n", entry.uid);
+            continue;
+        }
 
-	/* add your code here */
-	/* ... */
-	/* ... */
-	/* ... */
-	/* ... */
+        if (entry.action_denied == 1) { 
+            int found = 0;
+            for (int i = 0; i < unique_file_count[entry.uid]; i++) {
+                if (strcmp(entry.file, accessed_files[entry.uid][i]) == 0) {
+                    found = 1;
+                    break;
+                }
+            }
 
-	return;
+            if (!found && unique_file_count[entry.uid] < MAX_FILES) { 
+                strncpy(accessed_files[entry.uid][unique_file_count[entry.uid]], entry.file, MAX_FILENAME_LENGTH);
+                unique_file_count[entry.uid]++;
+            }
+        }
+    }
 
+    printf("Malicious users (attempted unauthorized access to more than 5 files):\n");
+    for (int i = 0; i < MAX_USERS; i++) {
+        if (unique_file_count[i] > 5) {
+            printf("User ID: %d, Unauthorized File Accesses: %d\n", i, unique_file_count[i]);
+        }
+    }
 }
 
+// List modifications for a specified file
+void list_file_modifications(FILE *log, char *file_to_scan) {
+    struct log_entry entry;
+    int modification_counts[MAX_USERS] = {0};
+    char last_fingerprint[MAX_FILENAME_LENGTH] = "";  // Adjusted size to MAX_FILENAME_LENGTH
 
-void
-list_file_modifications(FILE *log, char *file_to_scan)
-{
+    while (fscanf(log, "%d %s %s %s %d %d %s", 
+                  &entry.uid, entry.file, entry.date, entry.timestamp, 
+                  &entry.access_type, &entry.action_denied, entry.fingerprint) == 7) {
+        
+        if (entry.uid < 0 || entry.uid >= MAX_USERS) {
+            fprintf(stderr, "Warning: User ID %d out of bounds, skipping entry.\n", entry.uid);
+            continue;
+        }
 
-	/* add your code here */
-	/* ... */
-	/* ... */
-	/* ... */
-	/* ... */
+        if (strcmp(entry.file, file_to_scan) == 0 && entry.access_type == 2) {
+            if (strcmp(last_fingerprint, entry.fingerprint) != 0) {
+                modification_counts[entry.uid]++;
+                strncpy(last_fingerprint, entry.fingerprint, sizeof(last_fingerprint) - 1);
+            }
+        }
+    }
 
-	return;
-
+    printf("Modifications for file: %s\n", file_to_scan);
+    for (int i = 0; i < MAX_USERS; i++) {
+        if (modification_counts[i] > 0) {
+            printf("User ID: %d, Modifications: %d\n", i, modification_counts[i]);
+        }
+    }
 }
 
+int main(int argc, char *argv[]) {
+    int ch;
+    FILE *log;
 
-int 
-main(int argc, char *argv[])
-{
+    if (argc < 2) usage();
 
-	int ch;
-	FILE *log;
+    if ((log = fopen("./file_logging.log", "r")) == NULL) {
+        printf("Error opening log file \"%s\"\n", "./file_logging.log");
+        return 1;
+    }
 
-	if (argc < 2)
-		usage();
+    while ((ch = getopt(argc, argv, "hi:m")) != -1) {
+        switch (ch) {        
+            case 'i':
+                list_file_modifications(log, optarg);
+                break;
+            case 'm':
+                list_unauthorized_accesses(log);
+                break;
+            default:
+                usage();
+        }
+    }
 
-	log = fopen("./file_logging.log", "r");
-	if (log == NULL) {
-		printf("Error opening log file \"%s\"\n", "./log");
-		return 1;
-	}
-
-	while ((ch = getopt(argc, argv, "hi:m")) != -1) {
-		switch (ch) {		
-		case 'i':
-			list_file_modifications(log, optarg);
-			break;
-		case 'm':
-			list_unauthorized_accesses(log);
-			break;
-		default:
-			usage();
-		}
-
-	}
-
-
-	/* add your code here */
-	/* ... */
-	/* ... */
-	/* ... */
-	/* ... */
-
-
-	fclose(log);
-	argc -= optind;
-	argv += optind;	
-	
-	return 0;
+    fclose(log);
+    return 0;
 }
