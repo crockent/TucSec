@@ -52,7 +52,7 @@ int determine_access_type(const char *path, const char *mode, int *action_denied
     if (mode[0] == 'w' || mode[0] == 'a') {
         if(access(path, W_OK) != -1){
             access_type = 2;
-            *action_denied = 0
+            *action_denied = 0;
         }
         else{
             access_type = 2;
