@@ -40,13 +40,26 @@ int determine_access_type(const char *path, const char *mode, int *action_denied
     int access_type = -1;
     if (access(path, F_OK) != -1) { // File exists
         if (mode[0] == 'r') {
+            if(access(path, R_OK) != -1){
             access_type = 1;
-            *action_denied = (access(path, R_OK) == -1);
-        } else if (mode[0] == 'w' || mode[0] == 'a') {
-            access_type = 2;
-            *action_denied = (access(path, W_OK) == -1);
+            *action_denied = 0;
         }
-    } else if (mode[0] == 'w' || mode[0] == 'a') { // File doesn't exist
+        else{
+            access_type = 1;
+            *action_denied = 1;
+        }
+    }
+    if (mode[0] == 'w' || mode[0] == 'a') {
+        if(access(path, W_OK) != -1){
+            access_type = 2;
+            *action_denied = 0
+        }
+        else{
+            access_type = 2;
+            *action_denied = 1;
+        }
+      }
+  } else if (mode[0] == 'w' || mode[0] == 'a') { // File doesn't exist
         access_type = 0;
         *action_denied = 0;
     }
