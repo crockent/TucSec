@@ -44,21 +44,19 @@ void get_user_log_entry(LOG* log_entry, FILE* logfile) {
     log_entry->file = malloc(sizeof(char) * 256);  // Increased size
     log_entry->fingerprint = malloc(sizeof(char) * 256);  // Increased size
     if (!log_entry->file || !log_entry->fingerprint) {
-        fprintf(stderr, "Memory allocation failed\n");
+        printf("Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
 
     // Use a buffer to hold the date string
     char date_buffer[50];
-    char day[4], mon[4], n[3], year[5];
 
-    if (fscanf(logfile, "%d %s %s %s %s %s %s %d %d %s",
+    if (fscanf(logfile, "%d %s %s %s %d %d %s",
            &(log_entry->uid), log_entry->file, 
-           day, mon, n, year, 
            date_buffer,  // use buffer for date
            &(log_entry->access_type), &(log_entry->action_denied), 
            log_entry->fingerprint) != 10) { // Ensure we read all expected values
-        fprintf(stderr, "Log entry format is invalid\n");
+        printf("Log entry format is invalid\n");
         exit(EXIT_FAILURE);
     }
 
@@ -84,7 +82,7 @@ void list_unauthorized_accesses(FILE *log) {
     // Allocate memory for entries
     LOG** log_entry_list = malloc(size * sizeof(LOG*)); // Changed to LOG
     if (!log_entry_list) {
-        fprintf(stderr, "Memory allocation failed\n");
+        printf("Memory allocation failed\n");
         return;
     }
 
@@ -93,7 +91,7 @@ void list_unauthorized_accesses(FILE *log) {
     int denies[size];
     memset(denies,0,sizeof(denies));
     if (!mal_users || !denies) {
-        fprintf(stderr, "Memory allocation failed\n");
+        printf("Memory allocation failed\n");
         free(log_entry_list);
         return;
     }
@@ -133,36 +131,86 @@ void list_unauthorized_accesses(FILE *log) {
 
 
 
-// List modifications for a specified file
-/*void list_file_modifications(FILE *log, char *file_to_scan) {
-    struct log_entry entry;
-    int modification_counts[MAX_USERS] = {0};
-    char last_fingerprint[MAX_FILENAME_LENGTH] = "";  // Adjusted size to MAX_FILENAME_LENGTH
+void list_file_modifications(FILE *log, const char *file_to_scan) {	
+    fseek(log, 0, SEEK_END); 
+    int size = ftell(log); 
+    fseek(log, 0, SEEK_SET); 
 
-    while (fscanf(log, "%d %s %s %s %d %d %s", 
-                  &entry.uid, entry.file, entry.date, entry.timestamp, 
-                  &entry.access_type, &entry.action_denied, entry.fingerprint) == 7) {
+    LOG** log_list = malloc(size * sizeof(LOG*));  
+    int real_size = 0;
+
+    char *real_path = realpath(file_to_scan, NULL);
+    if (!real_path) {
+        perror("Error resolving file path");
+        free(log_list);
+        return;
+    }
+
+    while (!feof(log)) {
+        LOG *temp_log = malloc(sizeof(LOG));
+        get_user_log_entry(temp_log, log);
         
-        if (entry.uid < 0 || entry.uid >= MAX_USERS) {
-            fprintf(stderr, "Warning: User ID %d out of bounds, skipping entry.\n", entry.uid);
-            continue;
+        if (strcmp(real_path, temp_log->file) == 0) {
+            log_list[real_size++] = temp_log;
+        } else {
+            free(temp_log);  // Free entry if it's not the target file
         }
+    }
 
-        if (strcmp(entry.file, file_to_scan) == 0 && entry.access_type == 2) {
-            if (strcmp(last_fingerprint, entry.fingerprint) != 0) {
-                modification_counts[entry.uid]++;
-                strncpy(last_fingerprint, entry.fingerprint, sizeof(last_fingerprint) - 1);
+    free(real_path);  // Free resolved path after use
+
+    if (real_size == 0) {
+        printf("file not found\n");
+        free(log_list);
+        return;
+    }
+
+    int *users = malloc(real_size * sizeof(int));
+    int *mods = calloc(real_size, sizeof(int));
+    
+    if (!users || !mods) {
+        perror("Memory allocation failed");
+        free(log_list);
+        free(users);
+        free(mods);
+        return;
+    }
+
+    char *hash_value = log_list[0]->fingerprint;
+    users[0] = log_list[0]->uid;
+    mods[0] = 1;
+    int index = 1;
+
+    for (int i = 1; i < real_size; i++) {
+        char *temp_value = log_list[i]->fingerprint;
+        if (strcmp(temp_value, hash_value) != 0) {
+            int check_user = check(users, log_list[i]->uid);
+            if (check_user != -1) {  // User exists in list
+                mods[check_user]++;
+            } else {
+                users[index] = log_list[i]->uid;
+                mods[index++] = 1;
             }
+            hash_value = log_list[i]->fingerprint;
         }
     }
 
-    printf("Modifications for file: %s\n", file_to_scan);
-    for (int i = 0; i < MAX_USERS; i++) {
-        if (modification_counts[i] > 0) {
-            printf("User ID: %d, Modifications: %d\n", i, modification_counts[i]);
-        }
+    // Display results
+    for (int i = 0; i < index; i++) {
+        printf("User %d modified the file %d times\n", users[i], mods[i]);
     }
-}*/
+
+    // Free allocated memory
+    for (int i = 0; i < real_size; i++) {
+        free(log_list[i]);
+    }
+    free(log_list);
+    free(users);
+    free(mods);
+}
+
+
+
 
 int main(int argc, char *argv[]) {
     int ch;
@@ -191,3 +239,5 @@ int main(int argc, char *argv[]) {
     fclose(log);
     return 0;
 }
+
+
