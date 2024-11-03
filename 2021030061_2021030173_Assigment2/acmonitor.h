@@ -19,6 +19,6 @@ typedef struct log_entry {
 
 void usage(void);
 void get_log_entry(Entry* log_entry, FILE* logfile);
-int check_user(int array[], int user);
+int check_user(int array[], int size, int user);
 void list_unauthorized_accesses(FILE *log);
 void list_file_modifications(FILE *log, char *file_to_scan);

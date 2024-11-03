@@ -13,7 +13,6 @@ fopen(const char *path, const char *mode)
     int uid = getuid(); /* user id (positive integer) */
     int access_type; /* access type values [0-2] */
     int action_denied=0; /* is action denied values [0-1] */
-    static int counter=0;
 
     /* determine access type */
     // First checking if file exists

@@ -36,8 +36,7 @@ void get_log_entry(Entry* log_entry, FILE* logfile){
 	//printf("here %s\n", log_entry->fingerprint);
 }
 
-int check_user(int array[], int user){
-	int size = sizeof(array) / sizeof(user);
+int check_user(int array[], int size, int user){
 	for(int i=0;i<size;i++){
 		if(array[i] == user)
 			return i;
@@ -64,7 +63,7 @@ list_unauthorized_accesses(FILE *log)
 		log_list[i] = malloc(sizeof(Entry));
 		get_log_entry(log_list[i], log);
 		if(log_list[i]->action_denied == 1){
-			int user_exists = check_user(mal_users, log_list[i]->uid);
+			int user_exists = check_user(mal_users, index, log_list[i]->uid);
 			if(user_exists != -1){	//user exists in mal_list
 				denies[user_exists]++;
 			}
@@ -130,7 +129,7 @@ list_file_modifications(FILE *log, char *file_to_scan)
 	for(int i = 0;i<real_size;i++){
 		char* temp_value = log_list[i]->fingerprint;
 		if(strcmp(temp_value, hash_value) != 0){
-			int check = check_user(users, log_list[i]->uid);
+			int check = check_user(users, index, log_list[i]->uid);
 			if(check != -1){	//user exists in list
 				mods[check]++;
 			}
