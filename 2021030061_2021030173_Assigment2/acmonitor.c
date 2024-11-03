@@ -40,103 +40,98 @@ void usage(void) {
 }
 
 void get_user_log_entry(LOG* log_entry, FILE* logfile) {
-    log_entry->file = malloc(sizeof(char) * 50);
-    log_entry->fingerprint = malloc(sizeof(char) * 50);
-    
+    // Allocate enough space for strings
+    log_entry->file = malloc(sizeof(char) * 256);  // Increased size
+    log_entry->fingerprint = malloc(sizeof(char) * 256);  // Increased size
+    if (!log_entry->file || !log_entry->fingerprint) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     // Use a buffer to hold the date string
     char date_buffer[50];
     char day[4], mon[4], n[3], year[5];
 
-    fscanf(logfile, "%d %s %s %s %s %s %s %d %d %s", 
+    if (fscanf(logfile, "%d %s %s %s %s %s %s %d %d %s",
            &(log_entry->uid), log_entry->file, 
            day, mon, n, year, 
            date_buffer,  // use buffer for date
            &(log_entry->access_type), &(log_entry->action_denied), 
-           log_entry->fingerprint);
+           log_entry->fingerprint) != 10) { // Ensure we read all expected values
+        fprintf(stderr, "Log entry format is invalid\n");
+        exit(EXIT_FAILURE);
+    }
 
-    // Combine day, month, number and year into a single string
-    snprintf(date_buffer, sizeof(date_buffer), "%s %s %s %s", day, mon, n, year);
-    log_entry->date = time(NULL); // or parse from date_buffer if needed
+    // Optionally: parse date_buffer if needed, currently set to time(NULL)
+    log_entry->date = time(NULL); // Adjust this line if you need actual date parsing
 }
 
-
-
-int check_user(int* users, int uid, int count) {
-    for (int i = 0; i < count; i++) {
-        if (users[i] == uid) {
-            return i; // Return the index if user exists
-        }
-    }
-    return -1; // User not found
+int check(int *users,int user){
+	int size = sizeof(users)/sizeof(user);
+	for(int i=0; i<size;i++){
+		if(users[i]==user);
+			return i;
+	}
+	return -1;
 }
 
 void list_unauthorized_accesses(FILE *log) {
     // Move to the end to find the size
     fseek(log, 0, SEEK_END);
-    int size = ftell(log);
+    long size = ftell(log);
     fseek(log, 0, SEEK_SET);
 
     // Allocate memory for entries
-    LOG *log_entry = malloc(size * sizeof(LOG)); // Changed to LOG
-    if (!log_entry) {
+    LOG** log_entry_list = malloc(size * sizeof(LOG*)); // Changed to LOG
+    if (!log_entry_list) {
         fprintf(stderr, "Memory allocation failed\n");
         return;
     }
 
     // Arrays for malicious users and deny counts
-    int *mal_users = malloc(size * sizeof(int));
-    int *denies = calloc(size, sizeof(int));
+    int mal_users[size];
+    int denies[size];
+    memset(denies,0,sizeof(denies));
     if (!mal_users || !denies) {
         fprintf(stderr, "Memory allocation failed\n");
-        free(log_entry);
+        free(log_entry_list);
         return;
     }
 
-    int entry_count = 0; 
+    int entry_count = 0;
+    int j=0;
 
     // Read entries from log
     while (!feof(log)) {
-        if (entry_count >= size) {
-            size *= 2;
-            log_entry = realloc(log_entry, size * sizeof(LOG));
-            mal_users = realloc(mal_users, size * sizeof(int));
-            denies = realloc(denies, size * sizeof(int));
-            if (!log_entry || !mal_users || !denies) {
-                fprintf(stderr, "Memory allocation failed\n");
-                free(log_entry);
-                free(mal_users);
-                free(denies);
-                return;
-            }
-        }
-
-        get_user_log_entry(&log_entry[entry_count], log); // Corrected to pass a LOG*
-
-        // Check for unauthorized access
-        if (log_entry[entry_count].action_denied == 1) {
-            int user_index = check_user(mal_users, log_entry[entry_count].uid, entry_count);
-            if (user_index != -1) {
-                denies[user_index]++;
-            } else {
-                mal_users[entry_count] = log_entry[entry_count].uid;
-                denies[entry_count]++;
-            }
-        }
-        entry_count++;
+    	log_entry_list[j]= malloc(size * sizeof(LOG));
+    	get_user_log_entry(log_entry_list[j],log);
+    	if(log_entry_list[j]->action_denied==1){
+    		int exists = check(mal_users,log_entry_list[j]->uid);
+    		if(exists==-1){
+    			mal_users[entry_count]= log_entry_list[j]->uid;
+    			denies[entry_count]++;
+    			entry_count++;
+    		}else denies[exists]++;
+    	}
+    	j++;
     }
 
-    // Print users with more than 5 denies
-    for (int i = 0; i < entry_count; i++) {
-        if (denies[i] > 5) {
-            printf("User ID: %d\n", mal_users[i]);
-        }
+
+    for(int i=0; i<entry_count; i++){
+    	if(denies[i]>5){
+    		printf("user id: %d\n", mal_users[i]);
+    	}
     }
 
-    // Free allocated memory
-    free(log_entry);
-    free(mal_users);
-    free(denies);
+    for(int i =0; i<size; i++){
+    	free(log_entry_list[i]);
+    }
+    free(log_entry_list);
+    return;
 }
+
+
+
 
 // List modifications for a specified file
 /*void list_file_modifications(FILE *log, char *file_to_scan) {
