@@ -1,8 +1,0 @@
-INFO:root:Detected Malware: files/test_files/test_file_17.bin, Hash: MD5:0c8f2eb20d90f1590b0621e558aa04e0, Threat Level: Critical, Timestamp: 2024-11-09 19:31:24.782057
-INFO:root:Detected Malware: files/test_files/test_file_13.bin, Hash: MD5:169d1608e646c5e20c77c2b15109df8b, Threat Level: Low, Timestamp: 2024-11-09 19:31:24.782571
-INFO:root:Detected Malware: files/sample_pdfs/3.pdf, Hash: MD5:18eab93cb070e20a314af59eeb7bcf7f, Threat Level: Medium, Timestamp: 2024-11-09 19:31:24.785345
-INFO:root:Detected Malware: files/sample_pdfs/9.pdf, Hash: MD5:1ad87a0ef4c0206d9d4dcbe2d89a45c7, Threat Level: Medium, Timestamp: 2024-11-09 19:31:24.798851
-INFO:root:Detected Malware: files/test_files/test_file_17.bin, MD5: 0c8f2eb20d90f1590b0621e558aa04e0, SHA256: 32dda8faa6ab762a02faf69c50c5534f3c77bf0608947c7a1617b958c4fad924 Threat Level: Critical, Timestamp: 2024-11-09 19:34:34.904082
-INFO:root:Detected Malware: files/test_files/test_file_13.bin, MD5: 169d1608e646c5e20c77c2b15109df8b, SHA256: 2d5edc9981304e2c2358b90f5d9aaa3142eed45e05da9b3f77d6c5751d5201d7 Threat Level: Low, Timestamp: 2024-11-09 19:34:34.905802
-INFO:root:Detected Malware: files/sample_pdfs/3.pdf, MD5: 18eab93cb070e20a314af59eeb7bcf7f, SHA256: d15700d2ad74ee745f82074dc5e336046142fd8d1e7ff48f6f69c6328c322af7 Threat Level: Medium, Timestamp: 2024-11-09 19:34:34.909925
-INFO:root:Detected Malware: files/sample_pdfs/9.pdf, MD5: 1ad87a0ef4c0206d9d4dcbe2d89a45c7, SHA256: 72befe109a1036965c64f792fae76f527d976de15d662856df7ad2fddcb4bfcb Threat Level: Medium, Timestamp: 2024-11-09 19:34:34.922496

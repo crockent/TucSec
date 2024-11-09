@@ -61,27 +61,26 @@ def detect_malware():
     signatures = load_signatures(SIGNATURE_FILE)
 
     # List of directories to scan
-    with open("files_for_quarantine.txt", "w") as file:
 
-        for directory in DIRECTORIES_TO_SCAN:
-            # Using os.walk to walk through the directory and subdirectories
-            for root, dirs, files in os.walk(directory):
-                for filename in files:
-                    file_path = os.path.join(root, filename)
-                    # Calculate file hashes
-                    file_hashes = calculate_hashes(file_path)
+    for directory in DIRECTORIES_TO_SCAN:
+        # Using os.walk to walk through the directory and subdirectories
+        for root, dirs, files in os.walk(directory):
+            for filename in files:
+                file_path = os.path.join(root, filename)
+                # Calculate file hashes
+                file_hashes = calculate_hashes(file_path)
                 
-                    # Compare hashes with signature database
-                    for signature in signatures:
-                        if (file_hashes["MD5"] == signature["MD5"] and
-                            file_hashes["SHA256"] == signature["SHA256"]):
-                            print(f"Malware detected in file: {filename}")
-                            print(f" - Malware Type: {signature['Malware Type']}")
-                            print(f" - Severity Level: {signature['Severity Level']}")
-                            print(f" - Infection Date: {signature['Infection Date']}")
-                            #quarantine(file_path)
-                            logging.info(f"Detected Malware: {file_path}, MD5: {signature['MD5']}, SHA256: {signature['SHA256']} Threat Level: {signature['Severity Level']}, Timestamp: {datetime.now()}")
-                            break
+                # Compare hashes with signature database
+                for signature in signatures:
+                    if (file_hashes["MD5"] == signature["MD5"] and
+                        file_hashes["SHA256"] == signature["SHA256"]):
+                        print(f"Malware detected in file: {filename}")
+                        print(f" - Malware Type: {signature['Malware Type']}")
+                        print(f" - Severity Level: {signature['Severity Level']}")
+                        print(f" - Infection Date: {signature['Infection Date']}")
+                        #quarantine(file_path)
+                        logging.info(f"Detected Malware: {file_path}, MD5: {signature['MD5']}, SHA256: {signature['SHA256']} Threat Level: {signature['Severity Level']}, Timestamp: {datetime.now()}")
+                        break
 
 def show_file_hashes():
     """Scan files in the TEST_DIR and check against malware signatures."""
