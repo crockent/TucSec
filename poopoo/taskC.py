@@ -9,7 +9,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # Set up logging
-logging.basicConfig(filename="detection_report.log", level=logging.INFO)
+logging.basicConfig(filename="detection_log.log", level=logging.INFO)
 
 class MalwareMonitorHandler(FileSystemEventHandler):
     def __init__(self, signature_file, output_file, quarantine_dir):
@@ -62,25 +62,12 @@ class MalwareMonitorHandler(FileSystemEventHandler):
         return False, None
 
     def quarantine_file(self, file_path):
-        # Set the quarantine directory as an absolute path
-        self.quarantine_dir = os.path.abspath("files/quarantine")
-
-        # Print statements to debug path values
-        print(f"Quarantine directory: {self.quarantine_dir}")
-        print(f"File path before move: {file_path}")
-
-        # Ensure the quarantine directory exists
+        # Move the infected file to the quarantine directory
         if not os.path.exists(self.quarantine_dir):
             os.makedirs(self.quarantine_dir)
-
-        # Define the quarantine path and print it
         quarantine_path = os.path.join(self.quarantine_dir, os.path.basename(file_path))
-        print(f"Quarantine path: {quarantine_path}")
-
-        # Move the file
         shutil.move(file_path, quarantine_path)
         return quarantine_path
-
 
     def log_infected_file(self, file_path, signature):
         # Log infected file to output report
@@ -111,13 +98,11 @@ class MalwareMonitorHandler(FileSystemEventHandler):
         infected, signature = self.is_malware(event.src_path)
         if infected:
             quarantine_path = self.quarantine_file(event.src_path)
-            output_report = self.output_file
             self.log_infected_file(quarantine_path, signature)
             print(f"Infected file quarantined: {quarantine_path}")
-            open(output_report, 'a').write(f"Infected file quarantined: {quarantine_path}, Malware Type: {signature['Malware Type']}, Severity Level: {signature['Severity Level']}, Infection Date: {signature['Infection Date']}\n")
 
 def monitor_directory(directory, signature_file, output_file, run_real_time):
-    quarantine_dir = os.path.join(directory, "files/quarantine")
+    quarantine_dir = os.path.join(directory, "quarantine")
     event_handler = MalwareMonitorHandler(signature_file, output_file, quarantine_dir)
     observer = Observer()
     observer.schedule(event_handler, directory, recursive=True)

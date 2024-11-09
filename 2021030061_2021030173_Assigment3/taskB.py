@@ -1,41 +1,55 @@
-from datetime import datetime
-import hashlib
-import logging
+import argparse
 import os
 import shutil
-
-# Setup logging
-logging.basicConfig(filename="detection_log.log", level=logging.INFO)
+import logging
+from datetime import datetime
 
 # Constants
-DIRECTORIES_TO_SCAN = ["files/test_files", "files/sample_pdfs"]
-SIGNATURE_FILE = "malware_signatures.txt"
+QUARANTINE_DIR = "files/quarantine"  # Directory to store quarantined files
+LOG_FILE = "detection_report.log"  # Log file for the malware detection report
+DIR_TO_SCAN = "files"  # Directory to scan for malware
 
-# Function to calculate hashes
+# Function to setup logging
+def setup_logging():
+    """Setup logging to write to a log file."""
+    logging.basicConfig(filename=LOG_FILE, level=logging.INFO,
+                        format="%(asctime)s - %(levelname)s - %(message)s")
+
+# Function to quarantine a file
+def quarantine_file(file_path, threat_level, description):
+    """Move the suspicious file to the quarantine directory."""
+    if not os.path.exists(QUARANTINE_DIR):
+        os.makedirs(QUARANTINE_DIR)
+
+    # Generate quarantine path
+    file_name = os.path.basename(file_path)
+    quarantine_path = os.path.join(QUARANTINE_DIR, file_name)
+    
+    # Move the file to quarantine
+    shutil.move(file_path, quarantine_path)
+    
+    # Log the quarantine action
+    logging.info(f"Quarantined file: {file_path}, Threat Level: {threat_level}, Description: {description}, Timestamp: {datetime.now()}")
+    print(f"File quarantined: {file_name} (Threat Level: {threat_level})")
+
+# Function to calculate file hashes (MD5 and SHA256)
 def calculate_hashes(file_path):
-    """Calculate MD5, SHA1, SHA256, and SHA512 hashes for the given file."""
+    """Calculate MD5 and SHA256 hashes for a given file."""
+    import hashlib
+
     hash_md5 = hashlib.md5()
-    hash_sha1 = hashlib.sha1()
     hash_sha256 = hashlib.sha256()
-    hash_sha512 = hashlib.sha512()
 
     with open(file_path, "rb") as f:
         content = f.read()
         hash_md5.update(content)
-        hash_sha1.update(content)
         hash_sha256.update(content)
-        hash_sha512.update(content)
-    
-    return {
-        "MD5": hash_md5.hexdigest(),
-        "SHA1": hash_sha1.hexdigest(),
-        "SHA256": hash_sha256.hexdigest(),
-        "SHA512": hash_sha512.hexdigest()
-    }
 
-# Load malware signatures
-def load_signatures(signature_file):
-    """Load malware signatures from file and return as dictionary."""
+    return hash_md5.hexdigest(), hash_sha256.hexdigest()
+
+# Function to load signatures from Task A
+def load_signatures(signature_file="malware_signatures.txt"):
+    """Load malware signatures from file and return them as a list of dictionaries."""
     signatures = []
     with open(signature_file, "r") as file:
         for line in file.readlines()[2:]:  # Skip headers
@@ -49,50 +63,51 @@ def load_signatures(signature_file):
             })
     return signatures
 
-# Function to quarantine malware files
-def quarantine(file_path):
-    shutil.move(file_path, "quarantine/")
-    print(f"File moved to quarantine: {file_path}")
-            
+# Recursive scanning function
+def scan_directory_for_malware(directory, signatures):
+    """Recursively scan the directory for files and detect malware."""
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            file_path = os.path.join(root, file)
 
-# Malware detection function
-def detect_malware():
-    """Scan files in the TEST_DIR and check against malware signatures."""
-    signatures = load_signatures(SIGNATURE_FILE)
+            # Calculate file hashes
+            md5_hash, sha256_hash = calculate_hashes(file_path)
 
-    # List of directories to scan
+            # Compare with signature database
+            for signature in signatures:
+                if md5_hash == signature["MD5"] and sha256_hash == signature["SHA256"]:
+                    print(f"Malware detected in file: {file}")
+                    logging.info(f"Malware detected: {file_path}, MD5: {md5_hash}, SHA256: {sha256_hash}, Threat Level: {signature['Severity Level']}, Timestamp: {datetime.now()}")
 
-    for directory in DIRECTORIES_TO_SCAN:
-        # Using os.walk to walk through the directory and subdirectories
-        for root, dirs, files in os.walk(directory):
-            for filename in files:
-                file_path = os.path.join(root, filename)
-                # Calculate file hashes
-                file_hashes = calculate_hashes(file_path)
-                
-                # Compare hashes with signature database
-                for signature in signatures:
-                    if (file_hashes["MD5"] == signature["MD5"] and
-                        file_hashes["SHA256"] == signature["SHA256"]):
-                        print(f"Malware detected in file: {filename}")
-                        print(f" - Malware Type: {signature['Malware Type']}")
-                        print(f" - Severity Level: {signature['Severity Level']}")
-                        print(f" - Infection Date: {signature['Infection Date']}")
-                        #quarantine(file_path)
-                        logging.info(f"Detected Malware: {file_path}, MD5: {signature['MD5']}, SHA256: {signature['SHA256']} Threat Level: {signature['Severity Level']}, Timestamp: {datetime.now()}")
-                        break
+                    # Quarantine the file
+                    quarantine_file(file_path, signature["Severity Level"], signature["Malware Type"])
+                    break
 
-def show_file_hashes():
-    """Scan files in the TEST_DIR and check against malware signatures."""
-    for filename in os.listdir("files/test_files"):
-        file_path = os.path.join("files/test_files", filename)
-        
-        # Calculate file hashes
-        file_hashes = calculate_hashes(file_path)
-        print(f" {file_path} - MD5: {file_hashes['MD5']}, SHA1:{file_hashes['SHA1']}, SHA256: {file_hashes['SHA256']}, SHA512: {file_hashes['SHA512']}")
+# Main function for Task B: Search and Quarantine
+def search_and_quarantine(directory=DIR_TO_SCAN):
+    """Main function to execute Task B - Search and Quarantine."""
+    # Load malware signatures from the database
+    signatures = load_signatures()
 
-# Show hashes for PDF files
-show_file_hashes()
+    # Setup logging
+    setup_logging()
 
-# Run the detection
-#detect_malware()
+    # Start scanning the directory and subdirectories for malware
+    print(f"Scanning directory '{directory}' and subdirectories for malware...")
+    scan_directory_for_malware(directory, signatures)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run specific functions from the script.")
+    parser.add_argument("--function", type=str, required=True, help="")
+    args = parser.parse_args()
+
+    # Map function names to actual functions
+    functions = {
+        "search_and_quarantine": search_and_quarantine
+    }
+
+    if args.function in functions:
+        functions[args.function]()
+    else:
+        print("Function not recognized. Please choose from:", ", ".join(functions.keys()))
