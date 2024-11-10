@@ -87,7 +87,3 @@ This project is designed to detect and quarantine malware files based on their s
 - Ensure that the `files/` directory and its subdirectories exist before running the tasks.
 - The `malware_signatures.txt` file should be generated using the `create_database` task before running other tasks.
 - The `detection_report.log` file will contain logs of detected malware and quarantined files.
-
-## License
-
-This project is licensed under the MIT License.
