@@ -86,5 +86,5 @@ This project is designed to detect and quarantine malware files based on their s
 - `detection_report.log`: Log file for malware detection reports.
 
 ## Authors
-#Mpouritis Ioannis
-#Emmanouil - Thomas Chatzakis
+- Mpouritis Ioannis
+- Emmanouil - Thomas Chatzakis
