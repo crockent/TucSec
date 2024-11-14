@@ -61,12 +61,12 @@ This project is designed to detect and quarantine malware files based on their s
 
 1. **Monitor Directory for Malware**:
      ```sh
-     make taskC_r
+     make taskC
      ```
 
 2. **Monitor Directory for Malware in Real-time**:
      ```sh
-     make taskC
+     make taskC_r
 
 ### Clean Up
 
@@ -86,5 +86,5 @@ This project is designed to detect and quarantine malware files based on their s
 - `detection_report.log`: Log file for malware detection reports.
 
 ## Authors
-Mpouritis Ioannis
-Emmanouil - Thomas Chatzakis
+- Mpouritis Ioannis
+- Emmanouil - Thomas Chatzakis
