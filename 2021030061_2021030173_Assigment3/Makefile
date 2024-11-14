@@ -23,7 +23,11 @@ taskB:
 	python3 taskB.py --function search_and_quarantine
 
 taskC:
+	python3 taskC.py -d files -s malware_signatures.txt -o detection_report.log
+
+taskC_r:
 	python3 taskC.py -d files -s malware_signatures.txt -o detection_report.log -r
+
 clean:
 	rm -rf malware_signatures.txt
 	rm -rf files/test_files

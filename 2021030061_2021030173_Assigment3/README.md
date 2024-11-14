@@ -10,8 +10,7 @@ This project is designed to detect and quarantine malware files based on their s
 
 ## Prerequisites
 
-- Python 3.x
-- Required Python packages (can be installed via `pip`):
+- Required Python packages:
     - `argparse`
     - `hashlib`
     - `os`
@@ -60,10 +59,14 @@ This project is designed to detect and quarantine malware files based on their s
 
 ### Task C: Real-time Malware Monitoring
 
-1. **Monitor Directory for Malware in Real-time**:
+1. **Monitor Directory for Malware**:
+     ```sh
+     make taskC_r
+     ```
+
+2. **Monitor Directory for Malware in Real-time**:
      ```sh
      make taskC
-     ```
 
 ### Clean Up
 
@@ -82,8 +85,6 @@ This project is designed to detect and quarantine malware files based on their s
 - `malware_signatures.txt`: File containing malware signatures.
 - `detection_report.log`: Log file for malware detection reports.
 
-## Notes
-
-- Ensure that the `files/` directory and its subdirectories exist before running the tasks.
-- The `malware_signatures.txt` file should be generated using the `create_database` task before running other tasks.
-- The `detection_report.log` file will contain logs of detected malware and quarantined files.
+## Authors
+Mpouritis Ioannis
+Emmanouil - Thomas Chatzakis
