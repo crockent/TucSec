@@ -1,4 +1,4 @@
-# Ασφάλεια Συστημάτων και Υπηρεσιών University Project
+# System and Service Security University Project
 
 This repository contains the projects completed as part of the **"System and Service Security"** course at Technical University of Crete. The course covers a wide range of security concepts and practical implementations, divided into **seven projects**. Each project focuses on a specific aspect of system and network security, including cryptography, malware detection, web vulnerabilities, network monitoring, and exploitation techniques.
 
@@ -33,5 +33,3 @@ The course is divided into **seven projects**, each addressing a critical area o
 - Demonstration and exploitation of buffer overflow vulnerabilities in a controlled environment.
 
 ---
-
-## 🗂 Repository Structure
