@@ -33,5 +33,3 @@ The course is divided into **seven projects**, each addressing a critical area o
 - Demonstration and exploitation of buffer overflow vulnerabilities in a controlled environment.
 
 ---
-
-## 🗂 Repository Structure
