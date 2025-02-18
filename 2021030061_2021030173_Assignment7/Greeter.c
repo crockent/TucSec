@@ -15,14 +15,14 @@ unsigned char Name[1024];
 void readString() {
 	char buf[32];
 	int i;
-        int Grade = 6;
+    int Grade = 6;
 
 	gets(buf);
 
 	for (i=0; i<128; i++)
        		Name[i] = buf[i];
         
-        printf("Hello %s, your grade is %d. Have a nice day.\n", Name, Grade);
+    printf("Hello %s, your grade is %d. Have a nice day.\n", Name, Grade);
 
 
    	return;
@@ -35,7 +35,8 @@ int main(void) {
          	 PROT_READ|PROT_WRITE|PROT_EXEC);
 
 	printf("What is your name?\n");
-        readString();
+    readString();
         
 	exit(0);
 }
+		1
